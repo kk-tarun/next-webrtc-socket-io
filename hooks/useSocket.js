@@ -10,12 +10,13 @@ const useSocket = () => {
       }
       try {
         socketInitializer()
-        socketCreated.current = true
+        socketCreated.current = true;
       } catch (error) {
+        console.log("Socket creation error: " + error);
         console.log(error)
       }
     }
   }, []);
 };
 
-export default useSocket
+export default useSocket;

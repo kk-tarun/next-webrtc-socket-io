@@ -10,11 +10,11 @@ const SocketHandler = (req, res) => {
   res.socket.server.io = io;
 
   io.on("connection", (socket) => {
-    console.log(`User Connected :${  socket.id}`);
+    console.log(`User Connected :${socket.id}`);
   
     // Triggered when a peer hits the join room button.
     socket.on("join", (roomName) => {
-      const {rooms} = io.sockets.adapter;
+      const { rooms } = io.sockets.adapter;
       const room = rooms.get(roomName);
   
       // room == undefined when no such room exists.
@@ -39,7 +39,7 @@ const SocketHandler = (req, res) => {
   
     // Triggered when server gets an icecandidate from a peer in the room.
     socket.on("ice-candidate", (candidate, roomName) => {
-      console.log(candidate);
+      // console.log(candidate);
       socket.broadcast.to(roomName).emit("ice-candidate", candidate); // Sends Candidate to the other peer in the room.
     });
   
@@ -53,12 +53,27 @@ const SocketHandler = (req, res) => {
       socket.broadcast.to(roomName).emit("answer", answer); // Sends Answer to the other peer in the room.
     });
 
+    // Handle face movement data
+    socket.on("peer-face-data", (data, roomName) => {
+      console.log("data blendshapes = ", data.blendshapes)
+      console.log("data rotation = ", data.rotation)
+      socket.broadcast.to(roomName).emit("peer-face-data", data);
+    });
+
+    // Triggered when a peer leaves the room
     socket.on("leave", (roomName) => {
       socket.leave(roomName);
       socket.broadcast.to(roomName).emit("leave");
     });
-
   });
+
+  io.engine.on("connection_error", (err) => {
+    console.log(err.req);      // the request object
+    console.log(err.code);     // the error code, for example 1
+    console.log(err.message);  // the error message, for example "Session ID unknown"
+    console.log(err.context);  // some additional error context
+  });
+
   return res.end();
 };
 
